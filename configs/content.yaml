@@ -1,0 +1,20 @@
+track: content
+data:
+  smugglebench: data/raw/smugglebench
+  benign: data/raw/benign_stylised
+split:
+  kind: held_out_family
+  test_families: [low_contrast, fragmented]   # TODO: set after inspecting SmuggleBench families
+  val_frac: 0.2
+tier1:
+  backbone: facebook/dinov3-vitb16-pretrain-lvd1689m
+tier2:
+  mllm: Qwen/Qwen2.5-VL-7B-Instruct
+  k_samples: 3
+cascade:
+  low: 0.2
+  high: 0.8
+  threshold: 0.5
+costs:
+  c_fn: 10.0   # missed scam promotion
+  c_fp: 1.0    # benign post wrongly blocked

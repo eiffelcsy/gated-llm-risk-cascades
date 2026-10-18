@@ -1,0 +1,22 @@
+track: transactions
+data:
+  ieee_cis: data/raw/ieee-cis
+split:
+  kind: temporal
+  # TransactionDT is in seconds; ~6 months total. Set boundaries after loading.
+  train_end: null
+  val_end: null
+tier1:
+  num_leaves: 64
+  n_estimators: 500
+tier2:
+  llm: Qwen/Qwen2.5-7B-Instruct
+  max_tool_calls: 6
+  k_samples: 3
+cascade:
+  low: 0.2
+  high: 0.8
+  threshold: 0.5
+costs:
+  c_fn: 10.0   # missed fraud (chargeback)
+  c_fp: 1.0    # honest buyer declined
