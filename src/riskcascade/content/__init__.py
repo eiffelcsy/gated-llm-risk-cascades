@@ -1,1 +1,1 @@
-"""BRIC track: moderation-evading text in images."""
+"""Content track: moderation-evading text in images."""

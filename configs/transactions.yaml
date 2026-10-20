@@ -1,22 +1,37 @@
 track: transactions
 data:
+  source: synthetic            # synthetic | ieee_cis
   ieee_cis: data/raw/ieee-cis
-split:
-  kind: temporal
-  # TransactionDT is in seconds; ~6 months total. Set boundaries after loading.
-  train_end: null
-  val_end: null
+split:                         # days since TransactionDT=0; IEEE-CIS covers ~day 1-183
+  train_end_day: 91            # months 0-2: tier 1 (+ tier-2 training in the last weeks)
+  investigator_days: 28        # last 4 weeks before train_end train tier 2, not tier 1
+  val_end_day: 121             # month 3 picks the operating point and fits the gate
+                               # months 4-5 are the drifted test set
 tier1:
-  num_leaves: 64
-  n_estimators: 500
+  num_leaves: 31
+  n_estimators: 300
 tier2:
-  llm: Qwen/Qwen2.5-7B-Instruct
+  arm: gbdt                    # llm_agent | llm_dossier | encoder | gbdt
+  label_delay_days: 14         # fraud labels (chargebacks) become visible this long after the transaction
+  train_band_mult: 3           # supervised arms train on a band 3x the routing budget
+  llm: Qwen/Qwen2.5-7B-Instruct   # or a served GRPO checkpoint
+  base_url: http://localhost:8000/v1
   max_tool_calls: 6
   k_samples: 3
+  encoder: answerdotai/ModernBERT-base
+  encoder_epochs: 3
 cascade:
-  low: 0.2
-  high: 0.8
-  threshold: 0.5
+  budget: 0.10                 # share of traffic routed to tier 2
+gate:
+  rolling_window_days: 30      # gated_rolling refits on the latest labelled 30 days each month
 costs:
-  c_fn: 10.0   # missed fraud (chargeback)
-  c_fp: 1.0    # honest buyer declined
+  c_fn: 10.0                   # missed fraud (chargeback)
+  c_fp: 1.0                    # honest buyer declined
+posttrain:                     # GRPO for the llm_dossier arm (python -m riskcascade.transactions.posttrain)
+  base_model: Qwen/Qwen2.5-1.5B-Instruct
+  output_dir: results/grpo
+  num_generations: 8
+  max_completion_length: 256
+  learning_rate: 2.0e-5
+  max_steps: 300
+  lora_r: 16

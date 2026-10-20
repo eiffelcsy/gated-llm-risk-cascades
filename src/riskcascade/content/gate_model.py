@@ -1,7 +1,7 @@
 """Tier 1 for content: does this image contain text a human could read?
 
 It does NOT read the text. Frozen DINOv3 backbone + small adapter + linear
-head, reusing the Techjam AIGC adapter code. Must be fast: report ms/image.
+head. Must be fast: report ms/image.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ class TextPresenceGate:
 
     def fit(self, items: Sequence[dict], val_items: Sequence[dict] | None = None) -> "TextPresenceGate":
         """Train adapter + head on train split only. Add degradation augmentation
-        (JPEG, blur, resize) as in the AIGC project."""
+        (JPEG, blur, resize)."""
         raise NotImplementedError
 
     def score(self, items: Sequence[dict]) -> np.ndarray:
